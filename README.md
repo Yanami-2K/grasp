@@ -46,6 +46,12 @@ https://github.com/user-attachments/assets/47728d1f-54a1-485e-967e-28d8c716ed36
   <sub>Manage projects, agent backends, and run configuration in one platform.</sub>
 </p>
 
+<p align="center">
+  <img src="media/screenshots/token-analytics.webp" alt="Grasp token analytics" width="100%" />
+  <br />
+  <sub>Track token usage and cost distribution across projects and models.</sub>
+</p>
+
 ## Core capabilities
 
 | Capability | In the FSM |
@@ -185,3 +191,13 @@ Issues and pull requests are welcome. Read [`CONTRIBUTING.md`](CONTRIBUTING.md),
 ## License
 
 [MIT](LICENSE) © 2026 cocofhu
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=cocofhu%2Fgrasp&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=cocofhu/grasp&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=cocofhu/grasp&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=cocofhu/grasp&type=date&legend=top-left" />
+ </picture>
+</a>
