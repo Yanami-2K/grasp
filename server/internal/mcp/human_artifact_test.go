@@ -92,6 +92,11 @@ func TestValidateHumanArtifactContent_allStructured(t *testing.T) {
 			`{"title":"P","goals":[{"title":"G1","subgoals":[{"title":"S1"}]}]}`,
 			"plan",
 		},
+		{
+			PreflightArtifactName,
+			`{"summary":"env ready","confirmed":true,"fields":[{"name":"db_host","value":"localhost"}]}`,
+			"preflight",
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -126,5 +131,11 @@ func TestValidateHumanArtifactContent_freeformJSON(t *testing.T) {
 func TestValidateHumanArtifactContent_proposalNeedsTitleOrSummary(t *testing.T) {
 	if _, err := ValidateHumanArtifactContent(ProposalArtifactName, `{"id":"p1"}`); err == nil {
 		t.Fatal("expected title/summary required")
+	}
+}
+
+func TestValidateHumanArtifactContent_preflightMustBeConfirmed(t *testing.T) {
+	if _, err := ValidateHumanArtifactContent(PreflightArtifactName, `{"summary":"s","confirmed":false}`); err == nil {
+		t.Fatal("unconfirmed preflight should fail")
 	}
 }
