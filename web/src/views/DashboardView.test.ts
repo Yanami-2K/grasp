@@ -51,6 +51,7 @@ import { HOME_COMPOSER_DRAFT_KEY } from '@/lib/run/homeComposerDraft'
 import { HOME_PRIORITY_MEMORY_KEY } from '@/lib/run/useHomeApproveChat'
 import { setBrandSettings } from '@/lib/composables/useBrandSettings'
 import DashboardView from './DashboardView.vue'
+import dashboardSource from './DashboardView.vue?raw'
 
 const HomePreviewAppModalStub = {
   props: ['open', 'title', 'width'],
@@ -1003,6 +1004,45 @@ describe('DashboardView home composer', () => {
     expect(wrapper.find('[data-testid="home-create-workflow-name"]').exists()).toBe(true)
     expect(wrapper.find('[data-testid="home-create-project-list"]').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('从零开始')
+    wrapper.unmount()
+  })
+
+  // plan g3.1 — the plus is an SVG icon whose ink is geometrically centered in the square,
+  // so flex centering no longer depends on the text glyph baseline (font-independent).
+  it('renders the new-workflow plus as a centered svg icon instead of a text glyph', async () => {
+    const wrapper = mountDashboard()
+    await flushPromises()
+    const plus = wrapper.get('[data-testid="home-new-workflow"] .home-shell__card-plus')
+    // no text node => no font baseline to push the glyph off-center
+    expect(plus.text().trim()).toBe('')
+
+    const svg = plus.get('svg')
+    // size matches sibling plus icons (e.g. home-composer-plus) so the ink is not enlarged
+    expect(svg.attributes('width')).toBe('16')
+    expect(svg.attributes('height')).toBe('16')
+    const viewBox = svg.attributes('viewBox') ?? ''
+    const [vbX, vbY, vbW, vbH] = viewBox.split(/\s+/).map(Number)
+    expect(vbW).toBe(vbH)
+    expect(vbX + vbW / 2).toBe(vbY + vbH / 2)
+
+    // each stroke of the plus is centered on the viewBox center
+    const d = svg.get('path').attributes('d') ?? ''
+    const vertical = d.match(/M(\d+) (\d+)v(\d+)/)
+    const horizontal = d.match(/M(\d+) (\d+)h(\d+)/)
+    expect(vertical).not.toBeNull()
+    expect(horizontal).not.toBeNull()
+    const vMid = { x: Number(vertical![1]), y: Number(vertical![2]) + Number(vertical![3]) / 2 }
+    const hMid = { x: Number(horizontal![1]) + Number(horizontal![3]) / 2, y: Number(horizontal![2]) }
+    expect(vMid).toEqual({ x: vbX + vbW / 2, y: vbY + vbH / 2 })
+    expect(hMid).toEqual(vMid)
+
+    // the flex box still centers its svg child geometrically (no font baseline involved)
+    expect(svg.element.parentElement).toBe(plus.element)
+    const css = dashboardSource
+    expect(css).toMatch(/\.home-shell__card-plus\s*\{[^}]*display:\s*flex[^}]*\}/)
+    expect(css).toMatch(/\.home-shell__card-plus\s*\{[^}]*align-items:\s*center[^}]*\}/)
+    expect(css).toMatch(/\.home-shell__card-plus\s*\{[^}]*justify-content:\s*center[^}]*\}/)
+    expect(css).toMatch(/\.home-shell__card-plus\s*>\s*svg\s*\{[^}]*display:\s*block[^}]*\}/)
     wrapper.unmount()
   })
 
