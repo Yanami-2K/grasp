@@ -299,6 +299,10 @@ func (h *Host) runTool(runID, token, name string, args map[string]any) (string, 
 		}
 		return fmt.Sprintf("ok: 已设置产物预览 %q", aname), false
 	case "node_complete":
+		// Grasp Phase1: treat as unknown — do not teach the confirm-after flow.
+		if h.hideNodeComplete(runID) {
+			return "unknown tool: node_complete", true
+		}
 		return h.nodeComplete(runID, token, args)
 	default:
 		return "unknown tool: " + name, true
@@ -1166,7 +1170,7 @@ func artifactTools() []map[string]any {
 			"name": "set_preflight",
 			"description": "仅环境确认(preflight)节点可用:写入已确认的环境清单(preflight.json)。" +
 				"必填 summary、confirmed=true;fields[] 每项 name+value 明文(可为空数组表示无缺口);" +
-				"unresolved 必须为空。密码与其它值一律明文。表单提交不能代替本工具。写完后调用 node_complete。",
+				"unresolved 必须为空。密码与其它值一律明文。表单提交不能代替本工具。写完后按本节点完成标记契约收尾。",
 			"inputSchema": map[string]any{
 				"type": "object",
 				"properties": map[string]any{
