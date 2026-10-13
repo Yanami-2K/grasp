@@ -5,18 +5,15 @@
 </p>
 
 **[English](README.md) | 简体中文**
+
 近两年，随着大模型能力持续增强，我开始尝试多方面的探索，大约做过 150+ 个个人项目。在开发过程中，我遇到最大问题是：
 
-1、多项目切换成本高——IDE 来回跳，运行状态、上下文也难管齐；
-2、并行开发读不懂 Agent——模型总是一大段一大段往外倒，真正关键的信息反而被淹没，需要花大量的时间理解。
+1. **多项目切换成本高**：IDE 来回跳，运行状态、上下文也难管齐；
+2. **并行开发读不懂 Agent**：模型总是一大段一大段往外倒，真正关键的信息反而被淹没，需要花大量的时间理解。
 
 于是我做了 Grasp：把多项目收进同一个平台管理，用可视化的需求澄清，把 Agent 冗长输出收成你能一眼看懂的表达，从而抬高「人」这一侧的吞吐。我们也支持接入多种 Agent 后端，例如 Cursor、CodeBuddy、Claude Code 等。
 
-
-
-[项目站](https://www.approving-ai.com/) · [快速开始](https://www.approving-ai.com/guide/quick-start/) · [贡献指南](CONTRIBUTING.md) · [配置](server/CONFIGURATION.md)
-
-
+[项目站](https://www.approving-ai.com/) · [快速开始](https://www.approving-ai.com/guide/quick-start/) · [贡献指南](CONTRIBUTING.md) · [配置](server/CONFIGURATION.md) · [Gateway](GATEWAY.md)
 
 [![CI Server](https://github.com/cocofhu/grasp/actions/workflows/ci-server.yml/badge.svg)](https://github.com/cocofhu/grasp/actions/workflows/ci-server.yml)
 [![CI Web](https://github.com/cocofhu/grasp/actions/workflows/ci-web.yml/badge.svg)](https://github.com/cocofhu/grasp/actions/workflows/ci-web.yml)
@@ -63,7 +60,7 @@ https://github.com/user-attachments/assets/47728d1f-54a1-485e-967e-28d8c716ed36
 
 ## 核心能力
 
-| 能力 | 在 FSM 里的位置 |
+| 能力 | 具体是什么 |
 |---|---|
 | 可视化画布 | 节点 + 成功 / 失败 / 回滚 + `when` + checkpoint |
 | 可视化澄清 | 需求澄清 Agent → 规格 + 计划 + 可选 `page.html` |
@@ -73,7 +70,7 @@ https://github.com/user-attachments/assets/47728d1f-54a1-485e-967e-28d8c716ed36
 | Git 交付 | 沙箱内 `gh` / `glab` / SSH |
 | 可观测 | 时间线、沙箱日志、产物、Token |
 
-仓库内提供 Clarify、Visual、Research、Plan、Implement、Test、Preview、Review 等角色包。用 `agents/pack.sh` 打包后导入 Agent Studio。
+`agents/` 里自带五个角色 Agent：PMAgent、ClarifyAgent、ImplementAgent、TestReviewAgent、DeliverAgent。跑一下 `agents/pack.sh`（或 `agents/pack.sh ClarifyAgent` 只打一个），会在 `agents/dist/` 下生成 ZIP，再到 Agent Studio 里导入就行。注意：目前导入 ZIP 不会带上 `acpBackend`，导进来默认是 `cursor`，要换后端得导入后自己改。
 
 ## 典型工作流
 
@@ -123,9 +120,11 @@ cd grasp
 常用命令：
 
 ```bash
-./start.sh logs          # 查看日志
-./start.sh down          # 停止服务
-./start.sh pull          # 刷新 GHCR 镜像
+./start.sh logs          # 看日志
+./start.sh gw-logs       # 只看 Gateway 日志
+./start.sh restart       # 停掉再后台起来
+./start.sh down          # 停服务
+./start.sh pull          # 刷新 GHCR 镜像和沙箱 runtime
 ./start.sh dev -d        # 源码开发栈：Go + Vite HMR
 ```
 
@@ -179,7 +178,7 @@ cd grasp
 - 默认账号仅用于本地演示；共享或生产环境必须配置自己的鉴权用户。
 - ACP API Key 与 Git 凭据只在项目凭据 UI 中配置，不应提交到仓库。
 - 发布环境建议使用 digest 固定镜像，参考 [Release images and smoke](CONTRIBUTING.md#release-images-and-smoke)。
-- 1.0.0 为首个稳定公开发布版本。请在实际环境中完成安全评估、备份和容量验证。
+- 1.0.0 起就是稳定公开版本，当前最新是 2.1.0（见 [CHANGELOG](CHANGELOG.md)）。上生产前，安全评估、备份和容量验证还是得自己做一遍。
 - **反向代理 Host：** 临时审批分享链接按本请求的 `Host` 铸造（不信任客户端 `X-Forwarded-Host`）。代理须保留浏览器原始 Host（如 nginx `proxy_set_header Host $host`）；TLS 终止时正确转发 `X-Forwarded-Proto`。详见 [`SECURITY.md`](SECURITY.md)。
 - **数据库与附件同生命周期：** 发布 Compose 把 SQLite（`./.localdata/db`）和附件（`./.localdata/app-data`）分开挂载。备份和清理要成对进行（若自定义了 `GRASP_BLOBS_ROOT` 也要一起带上）；否则 Run 输入可能仍引用 `blob:`，而 `GET /api/blobs/:id` 返回 404。历史孤儿只在 UI 里显示为永久占位，本版本不提供孤儿扫描。详见 [快速开始 · 数据库与附件](docs/content/guide/quick-start.md#数据库与附件同生命周期备份--清理)。
 
@@ -192,6 +191,7 @@ cd grasp
 - [贡献指南](CONTRIBUTING.md)
 - [安全策略](SECURITY.md)
 - [支持渠道](SUPPORT.md)
+- [更新日志](CHANGELOG.md)
 
 ## 参与贡献
 

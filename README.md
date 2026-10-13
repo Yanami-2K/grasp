@@ -60,7 +60,7 @@ https://github.com/user-attachments/assets/47728d1f-54a1-485e-967e-28d8c716ed36
 
 ## Core capabilities
 
-| Capability | In the FSM |
+| Capability | What it means |
 |---|---|
 | Visual canvas | Nodes + success / fail / rollback + `when` + checkpoints |
 | Visual clarify | Clarify Agent → spec + plan + optional `page.html` |
@@ -70,7 +70,7 @@ https://github.com/user-attachments/assets/47728d1f-54a1-485e-967e-28d8c716ed36
 | Git delivery | `gh` / `glab` / SSH inside the sandbox |
 | Observability | Timeline, sandbox logs, artifacts, token usage |
 
-The repository includes Clarify, Visual, Research, Plan, Implement, Test, Preview, and Review role packs. Run `agents/pack.sh` and import them in Agent Studio.
+`agents/` ships five role agents: PMAgent, ClarifyAgent, ImplementAgent, TestReviewAgent, and DeliverAgent. Run `agents/pack.sh` (or `agents/pack.sh ClarifyAgent` for just one) to get ZIPs in `agents/dist/`, then import them in Agent Studio. Heads-up: ZIP import doesn't keep `acpBackend` yet, so imported agents start on `cursor`; switch the backend after import.
 
 ## Typical workflow
 
@@ -121,8 +121,10 @@ Useful commands:
 
 ```bash
 ./start.sh logs          # follow logs
+./start.sh gw-logs       # follow gateway logs only
+./start.sh restart       # down, then up detached
 ./start.sh down          # stop the stack
-./start.sh pull          # refresh GHCR images
+./start.sh pull          # refresh GHCR images and the sandbox runtime
 ./start.sh dev -d        # source stack: Go + Vite HMR
 ```
 
@@ -178,7 +180,7 @@ Module-specific lint, test, coverage, and E2E commands are documented in [`AGENT
 - The default account is for local demos only. Configure your own authentication users before any shared or production deployment.
 - Manage ACP API keys and Git credentials in the project's credential UI only; never commit credentials.
 - Pin production images by digest; see [Release images and smoke](CONTRIBUTING.md#release-images-and-smoke).
-- 1.0.0 is the first stable public release. Perform your own security review, backups, and capacity validation before production use.
+- Releases have been stable since 1.0.0; the latest is 2.1.0 (see [CHANGELOG](CHANGELOG.md)). Still, do your own security review, backups, and capacity checks before going to production.
 - **Reverse proxy Host:** temporary approval share links mint from this request's `Host` (never client `X-Forwarded-Host`). Preserve the browser Host (for example nginx `proxy_set_header Host $host`) and forward `X-Forwarded-Proto` when TLS terminates upstream. See [`SECURITY.md`](SECURITY.md).
 - **DB ↔ attachment lifecycle:** release Compose separates SQLite (`./.localdata/db`) from app-data/blobs (`./.localdata/app-data`). Backup and clean them as a pair (and include a custom `GRASP_BLOBS_ROOT` if set); otherwise Run inputs can keep `blob:` refs while `GET /api/blobs/:id` returns 404. Historical orphans are shown as permanent UI placeholders only—this release does not ship an orphan scanner. See [Quick start · Database and attachments](docs/content/en/guide/quick-start.md#database-and-attachments-share-one-lifecycle-backup--cleanup).
 
@@ -191,6 +193,7 @@ Module-specific lint, test, coverage, and E2E commands are documented in [`AGENT
 - [Contributing guide](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
 - [Support](SUPPORT.md)
+- [Changelog](CHANGELOG.md)
 
 ## Contributing
 
