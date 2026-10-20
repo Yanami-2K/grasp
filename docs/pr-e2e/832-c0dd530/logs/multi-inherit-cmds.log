@@ -1,0 +1,13 @@
+# 模拟：源库 workflow_defs.defaults（失败 apply+rollback 后遗留的可空列）里写入 Beta 覆盖变量 inheritWorkspace=true，自身 region=wf-own-default（与 Beta 项目变量 region=us-west 同名），无 notifyPolicy/gateAuto
+$ workspace-migrate plan --database ./mig/multi-inherit/db/grasp.db --profiles ./mig/multi-inherit/data/profiles --workspace proj-default --decisions ./upg/decisions.json --plan ./upg/inh-plan.json
+Plan written: 3 source workspaces, 0 blockers, 1 workflow renames, 0 memory renames, 2 credential renames. No business data was modified.
+exit=0
+
+$ workspace-migrate apply --database ./mig/multi-inherit/db/grasp.db --plan ./upg/inh-plan.json --backup ./upg/inh-backup --offline
+Workspace migration and integrity verification complete. Backups and journal retained.
+exit=0
+
+$ workspace-migrate verify --database ./mig/multi-inherit/db/grasp.db --plan ./upg/inh-plan.json --backup ./upg/inh-backup
+Workspace, history and file fingerprints verified.
+exit=0
+

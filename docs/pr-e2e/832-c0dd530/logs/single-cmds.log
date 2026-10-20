@@ -1,0 +1,24 @@
+$ workspace-migrate apply --database ./mig/single/db/grasp.db --plan ./upg/single-plan.json --backup ./upg/single-backup
+workspace migration: --offline and --backup are required for writes
+exit=1
+
+$ workspace-migrate apply --database ./mig/single/db/grasp.db --plan ./upg/single-plan.json --backup ./upg/nonempty --offline
+workspace migration: backup directory must be empty
+exit=1
+
+$ workspace-migrate plan --database ./mig/single/db/grasp.db --profiles ./mig/single/data/profiles --plan ./upg/single-plan.json
+workspace migration: open /workspace/grasp-e2e/pr-832/upg/single-plan.json: file exists
+exit=1
+
+$ workspace-migrate apply --database ./mig/single/db/grasp.db --plan ./upg/single-plan.json --backup ./upg/single-backup --offline
+Workspace migration and integrity verification complete. Backups and journal retained.
+exit=0
+
+$ workspace-migrate verify --database ./mig/single/db/grasp.db --plan ./upg/single-plan.json --backup ./upg/single-backup
+Workspace, history and file fingerprints verified.
+exit=0
+
+$ workspace-migrate apply --database ./mig/single/db/grasp.db --plan ./upg/single-plan.json --backup ./upg/single-backup --offline
+Workspace migration and integrity verification complete. Backups and journal retained.
+exit=0
+

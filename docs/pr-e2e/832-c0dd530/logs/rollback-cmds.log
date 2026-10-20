@@ -1,0 +1,36 @@
+# A. 单项目：迁移后未启动新服务，直接回滚
+$ workspace-migrate plan --database ./mig/single-rb/db/grasp.db --profiles ./mig/single-rb/data/profiles --plan ./upg/single-rb-plan.json
+Plan written: 1 source workspaces, 0 blockers, 0 workflow renames, 0 memory renames, 0 credential renames. No business data was modified.
+exit=0
+
+$ workspace-migrate apply --database ./mig/single-rb/db/grasp.db --plan ./upg/single-rb-plan.json --backup ./upg/single-rb-backup --offline
+Workspace migration and integrity verification complete. Backups and journal retained.
+exit=0
+
+$ workspace-migrate rollback --database ./mig/single-rb/db/grasp.db --plan ./upg/single-rb-plan.json --backup ./upg/single-rb-backup --offline
+Source data restored. Restart the source application before accepting new writes.
+exit=0
+
+# 回滚后 schema 与迁移前相同: False ; 新增对象: ['workflow_defs', 'project_credentials']
+# workflow_defs 列: ['updated_at', 'last_run_at', 'defaults']
+# B. 单项目：新服务已启动、登录（只读浏览，onboarding 400）后回滚
+$ workspace-migrate rollback --database ./mig/single-afterserver/db/grasp.db --plan ./upg/single-plan.json --backup ./upg/single-backup --offline
+workspace migration: database has unrelated writes; automatic rollback refused
+exit=1
+
+# C. 多项目：新服务里新建了工作流 own-ws-ok / no-project-ok 和 Agent OwnAgent 后回滚
+$ workspace-migrate rollback --database ./mig/multi-afterwrite/db/grasp.db --plan ./upg/multi-plan.json --backup ./upg/multi-backup --offline
+workspace migration: database has unrelated writes; automatic rollback refused
+exit=1
+
+# A 回滚后旧版本启动: [('Alpha 团队', 2)]
+# D-nologin. 单项目：迁移后启动新服务（nologin），不做业务操作，停服后回滚
+$ workspace-migrate rollback --database ./mig/single-d/db/grasp.db --plan ./upg/single-d-plan.json --backup ./upg/single-d-backup --offline
+Source data restored. Restart the source application before accepting new writes.
+exit=0
+
+# D-login. 单项目：迁移后启动新服务（login），不做业务操作，停服后回滚
+$ workspace-migrate rollback --database ./mig/single-d/db/grasp.db --plan ./upg/single-d-plan.json --backup ./upg/single-d-backup --offline
+workspace migration: database has unrelated writes; automatic rollback refused
+exit=1
+

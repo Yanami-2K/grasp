@@ -1,0 +1,17 @@
+POST /api/workflows {"projectId":"proj-796910b5","name":"foreign-old-beta","nodes":[],"edges":[]} -> 400 {"code":"workspace_scope","error":"project scope does not match the workspace"}
+POST /api/workflows {"projectId":"proj-doesnotexist","name":"foreign-bogus","nodes":[],"edges":[]} -> 400 {"code":"workspace_scope","error":"project scope does not match the workspace"}
+POST /api/workflows {"projectId":"proj-default","name":"own-ws-ok","nodes":[],"edges":[]} -> 200 {"defaults":null,"description":"","edges":[],"id":"wf-619741aa","lastRunAt":null,"name":"own-ws-ok","needsRepo":false,"nodes":[],"notifyPolicy":{"mode":"inherit"},"projectId":"proj-default","published
+POST /api/workflows {"name":"no-project-ok","nodes":[],"edges":[]} -> 200 {"defaults":null,"description":"","edges":[],"id":"wf-175f8c5d","lastRunAt":null,"name":"no-project-ok","needsRepo":false,"nodes":[],"notifyPolicy":{"mode":"inherit"},"projectId":"proj-default","publi
+POST /api/workflows/from-baseline {"projectId":"proj-796910b5","name":"fb-foreign"} -> 400 {"code":"workspace_scope","error":"project scope does not match the workspace"}
+POST /api/agents {"name":"ForeignAgent","projectId":"proj-796910b5","acpBackend":"cursor"} -> 400 {"code":"workspace_scope","error":"project scope does not match the workspace"}
+POST /api/agents {"name":"OwnAgent","projectId":"proj-default","acpBackend":"cursor"} -> 201 {"name":"OwnAgent","projectId":"proj-default","acpBackend":"cursor","files":null,"mcp":[{"name":"artifact-store","url":"${GRASP_ARTIFACT_URL}","headers":{"Authorization":"Bearer ${GRASP_ARTIFACT_TOKEN
+POST /api/workspace/bootstrap-onboarding {"projectId":"proj-796910b5","acpBackend":"cursor","apiKey":"fake-key-123"} -> 400 {"error":"credential alias already exists for this kind"}
+POST /api/workspace/bootstrap-onboarding {"acpBackend":"cursor","apiKey":""} -> 400 {"error":"apiKey is required"}
+POST /api/workspace/bootstrap-onboarding {"acpBackend":"cursor","apiKey":"fake-key-123"} -> 400 {"error":"credential alias already exists for this kind"}
+GET /api/projects  -> 404 not found: /api/projects
+GET /api/projects/proj-default  -> 404 not found: /api/projects/proj-default
+GET /api/workflows?projectId=proj-796910b5  -> 400 {"code":"workspace_scope","error":"project scope does not match the workspace"}
+GET /api/runs?projectId=proj-796910b5  -> 400 {"code":"workspace_scope","error":"project scope does not match the workspace"}
+single-migrated onboarding -> 400 {"error":"credential alias already exists for this kind"}
+OLD base, same single DB, onboarding -> 400 {"error":"credential alias already exists for this kind"}
+fresh onboarding (body 带外部 projectId) -> 200 {"agentIds":["需求澄清","实现","测试评审","交付"],"workflowId":"8977f455-b6f8-4f2c-ab78-099e9e2fcd11","published":true}

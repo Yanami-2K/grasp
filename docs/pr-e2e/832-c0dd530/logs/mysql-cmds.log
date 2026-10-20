@@ -1,0 +1,81 @@
+# ===== MariaDB 11.8（旧版能在其上正常 AutoMigrate 运行）=====
+$ workspace-migrate plan --driver mysql --profiles ./mig/my-single/data/profiles --plan ./upg/maria-single-plan.json
+workspace migration: Error 1054 (42S22): Unknown column 'PAD_ATTRIBUTE' in 'SELECT'
+exit=1
+# ===== MySQL 8.4.6（与 CI 同大版本；旧版 longtext 唯一索引在 8.4 上无法 AutoMigrate，故用 MariaDB 上旧版生成的数据导入，name 等索引列改 varchar(191)）=====
+# 迁移前新服务启动多项目 MySQL 库: exit=1 "error":"workspace migration required: 3 projects; run workspace-migrate offline"
+# --- MySQL single ---
+$ workspace-migrate plan --driver mysql --profiles ./mig/my84-single-dir/data/profiles --plan ./upg/my84-single-plan.json
+Plan written: 1 source workspaces, 0 blockers, 0 workflow renames, 0 memory renames, 0 credential renames. No business data was modified.
+exit=0
+
+$ workspace-migrate apply --driver mysql --plan ./upg/my84-single-plan.json --backup ./upg/my84-single-backup
+workspace migration: --offline and --backup are required for writes
+exit=1
+
+$ workspace-migrate apply --driver mysql --plan ./upg/my84-single-plan.json --backup ./upg/nonempty --offline
+workspace migration: backup directory must be empty
+exit=1
+
+$ workspace-migrate apply --driver mysql --plan ./upg/my84-single-plan.json --backup ./upg/my84-single-backup --offline
+Workspace migration and integrity verification complete. Backups and journal retained.
+exit=0
+
+$ workspace-migrate verify --driver mysql --plan ./upg/my84-single-plan.json --backup ./upg/my84-single-backup
+Workspace, history and file fingerprints verified.
+exit=0
+
+# --- MySQL multi ---
+$ workspace-migrate plan --driver mysql --profiles ./mig/my84-multi-dir/data/profiles --plan ./upg/my84-multi-nows.json
+Plan written: 3 source workspaces, 3 blockers, 1 workflow renames, 0 memory renames, 2 credential renames. No business data was modified.
+workspace migration: migration has unresolved preflight blockers
+exit=1
+
+$ workspace-migrate plan --driver mysql --profiles ./mig/my84-multi-dir/data/profiles --workspace proj-default --decisions ./upg/decisions.json --plan ./upg/my84-multi-plan.json
+Plan written: 3 source workspaces, 0 blockers, 1 workflow renames, 0 memory renames, 2 credential renames. No business data was modified.
+exit=0
+
+$ workspace-migrate apply --driver mysql --plan ./upg/my84-multi-plan.json --backup ./upg/my84-multi-backup
+workspace migration: --offline and --backup are required for writes
+exit=1
+
+$ workspace-migrate apply --driver mysql --plan ./upg/my84-multi-plan.json --backup ./upg/nonempty --offline
+workspace migration: backup directory must be empty
+exit=1
+
+$ workspace-migrate apply --driver mysql --plan ./upg/my84-multi-plan.json --backup ./upg/my84-multi-backup --offline
+Workspace migration and integrity verification complete. Backups and journal retained.
+exit=0
+
+$ workspace-migrate verify --driver mysql --plan ./upg/my84-multi-plan.json --backup ./upg/my84-multi-backup
+Workspace, history and file fingerprints verified.
+exit=0
+
+# 迁移后新服务（MySQL multi）: 工作流 5 ['构建发布 · wf-b1ecb34e', 'Beta 覆盖变量', '仅b的流程', '构建发布', '仅a的流程']；运行 10
+# 新写入：POST /api/workflows mysql-new-write -> 200
+$ workspace-migrate rollback --driver mysql --plan ./upg/my84-multi-plan.json --backup ./upg/my84-multi-backup --offline
+workspace migration: database has unrelated writes; automatic rollback refused
+exit=1
+
+# --- MySQL single_rb：计划后改数据 → apply 拒绝；重新 plan → apply → 立即 rollback ---
+$ workspace-migrate plan --driver mysql --profiles ./mig/my84-single-rb-dir/data/profiles --plan ./upg/my84-srb-plan1.json
+Plan written: 1 source workspaces, 0 blockers, 0 workflow renames, 0 memory renames, 0 credential renames. No business data was modified.
+exit=0
+
+$ workspace-migrate apply --driver mysql --plan ./upg/my84-srb-plan1.json --backup ./upg/my84-srb-b1 --offline
+workspace migration: migration plan is stale or modified; run plan again
+exit=1
+
+$ workspace-migrate plan --driver mysql --profiles ./mig/my84-single-rb-dir/data/profiles --plan ./upg/my84-srb-plan2.json
+Plan written: 1 source workspaces, 0 blockers, 0 workflow renames, 0 memory renames, 0 credential renames. No business data was modified.
+exit=0
+
+$ workspace-migrate apply --driver mysql --plan ./upg/my84-srb-plan2.json --backup ./upg/my84-srb-b2 --offline
+Workspace migration and integrity verification complete. Backups and journal retained.
+exit=0
+
+$ workspace-migrate rollback --driver mysql --plan ./upg/my84-srb-plan2.json --backup ./upg/my84-srb-b2 --offline
+Source data restored. Restart the source application before accepting new writes.
+exit=0
+
+# 回滚后 projects=1，workflow_defs 列尾: defaults

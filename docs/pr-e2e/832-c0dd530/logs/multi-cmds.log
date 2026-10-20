@@ -1,0 +1,69 @@
+$ workspace-migrate plan --database ./mig/multi/db/grasp.db --profiles ./mig/multi/data/profiles --plan ./upg/multi-noworkspace.json
+Plan written: 3 source workspaces, 3 blockers, 1 workflow renames, 0 memory renames, 2 credential renames. No business data was modified.
+workspace migration: migration has unresolved preflight blockers
+exit=1
+
+$ workspace-migrate plan --database ./mig/multi/db/grasp.db --profiles ./mig/multi/data/profiles --workspace proj-796910b5 --plan ./upg/multi-plan0.json
+Plan written: 3 source workspaces, 1 blockers, 1 workflow renames, 0 memory renames, 2 credential renames. No business data was modified.
+workspace migration: migration has unresolved preflight blockers
+exit=1
+
+$ workspace-migrate plan --database ./mig/multi/db/grasp.db --profiles ./mig/multi/data/profiles --workspace proj-default --decisions ./upg/decisions.json --plan ./upg/multi-plan.json
+Plan written: 3 source workspaces, 0 blockers, 1 workflow renames, 0 memory renames, 2 credential renames. No business data was modified.
+exit=0
+
+$ workspace-migrate plan --database ./mig/multi-fp/db/grasp.db --profiles ./mig/multi-fp/data/profiles --workspace proj-default --decisions ./upg/decisions.json --plan ./upg/fp-plan.json
+Plan written: 3 source workspaces, 0 blockers, 1 workflow renames, 0 memory renames, 2 credential renames. No business data was modified.
+exit=0
+
+# 模拟计划后又有写入：改一个工作流描述
+$ workspace-migrate apply --database ./mig/multi-fp/db/grasp.db --plan ./upg/fp-plan.json --backup ./upg/fp-backup --offline
+workspace migration: migration plan is stale or modified; run plan again
+exit=1
+
+# 改 profiles 文件（agent.json）后 apply
+$ workspace-migrate apply --database ./mig/multi-fp/db/grasp.db --plan ./upg/fp-plan.json --backup ./upg/fp-backup2 --offline
+workspace migration: migration plan is stale or modified; run plan again
+exit=1
+
+# 计划文件被篡改（清空 workflowRenames）
+$ workspace-migrate apply --database ./mig/multi-fp/db/grasp.db --plan ./upg/fp-plan-tampered.json --backup ./upg/fp-backup3 --offline
+workspace migration: migration plan is stale or modified; run plan again
+exit=1
+
+# backup 位于运行数据目录内
+$ workspace-migrate apply --database ./mig/multi-fp/db/grasp.db --plan ./upg/fp-plan.json --backup ./mig/multi-fp/data/profiles/bk --offline
+workspace migration: backup must not overlap either live data directory
+exit=1
+
+$ workspace-migrate apply --database ./mig/multi/db/grasp.db --plan ./upg/multi-plan.json --backup ./upg/multi-backup --offline
+workspace migration: 版本记录失败: cannot create empty commit: clean working tree
+exit=1
+
+$ workspace-migrate verify --database ./mig/multi/db/grasp.db --plan ./upg/multi-plan.json --backup ./upg/multi-backup
+workspace migration: migration is not complete
+exit=1
+
+# apply 失败后再次 apply（未完成 journal）
+$ workspace-migrate apply --database ./mig/multi/db/grasp.db --plan ./upg/multi-plan.json --backup ./upg/multi-backup --offline
+workspace migration: an unfinished migration journal exists; verify or roll it back before retrying
+exit=1
+
+# 回滚失败的 apply
+$ workspace-migrate rollback --database ./mig/multi/db/grasp.db --plan ./upg/multi-plan.json --backup ./upg/multi-backup --offline
+Source data restored. Restart the source application before accepting new writes.
+exit=0
+
+# ===== 给 Alpha/Beta 配上项目共享 Agent 配置（AGENTS.md + env）后重新走 =====
+$ workspace-migrate plan --database ./mig/multi/db/grasp.db --profiles ./mig/multi/data/profiles --workspace proj-default --decisions ./upg/decisions.json --plan ./upg/multi-plan.json
+Plan written: 3 source workspaces, 0 blockers, 1 workflow renames, 0 memory renames, 2 credential renames. No business data was modified.
+exit=0
+
+$ workspace-migrate apply --database ./mig/multi/db/grasp.db --plan ./upg/multi-plan.json --backup ./upg/multi-backup --offline
+Workspace migration and integrity verification complete. Backups and journal retained.
+exit=0
+
+$ workspace-migrate verify --database ./mig/multi/db/grasp.db --plan ./upg/multi-plan.json --backup ./upg/multi-backup
+Workspace, history and file fingerprints verified.
+exit=0
+
